@@ -220,6 +220,7 @@ def main():
   # parse command line and run
   parser = utils.prepare_parser()
   config = vars(parser.parse_args())
+  for k, v in config.items(): print('{}: {}'.format(k,v ))
   print(config)
   run(config)
 
