@@ -14,6 +14,7 @@ import train_fns
 import utils
 from common import *
 
+
 def run(config):
     # Update the config dict as necessary
     # This is for convenience, to add settings derived from the user-specified
@@ -46,7 +47,8 @@ def run(config):
 
     # If using EMA, prepare it
     if config['ema']:
-        print('Preparing EMA for G with decay of {}'.format(config['ema_decay']))
+        print('Preparing EMA for G with decay of {}'.format(
+            config['ema_decay']))
         G_ema = BigGAN.Generator(**{**config, 'skip_init': True,
                                     'no_optim': True}).to(device)
         ema = utils.ema(G, G_ema, config['ema_decay'], config['ema_start'])
@@ -73,7 +75,8 @@ def run(config):
     # to the dataloader, as G doesn't require dataloading.
     # Note that at every loader iteration we pass in enough data to complete
     # a full D iteration (regardless of number of D steps and accumulations)
-    D_batch_size = (config['batch_size'] * config['num_D_steps'] * config['num_D_accumulations'])
+    D_batch_size = (config['batch_size'] *
+                    config['num_D_steps'] * config['num_D_accumulations'])
     loaders = dataset.get_data_loaders(
         data_root=config['data_root'],
         label_root=config['label_root'],
@@ -81,13 +84,14 @@ def run(config):
         num_workers=config['num_workers'],
         shuffle=config['shuffle'],
         pin_memory=config['pin_memory'],
-        drop_last=True
+        drop_last=True,
+        load_in_mem=config['load_in_mem']
     )
 
     # Prepare noise and randomly sampled label arrays
     # Allow for different batch sizes in G
     G_batch_size = max(config['G_batch_size'], config['batch_size'])
-    num_samples=config['num_fixed_samples']
+    num_samples = config['num_fixed_samples']
     z_, y_ = utils.prepare_z_y(
         num_samples, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
     # Prepare a fixed z & y to see individual sample evolution throghout training
@@ -97,17 +101,22 @@ def run(config):
     fixed_y.sample_()
 
     # Loaders are loaded, prepare the training function
-    train = train_fns.create_train_fn(G, D, GD, z_, y_, ema, state_dict, config)
+    train = train_fns.create_train_fn(
+        G, D, GD, z_, y_, ema, state_dict, config)
 
     print('Beginning training at epoch %d...' % state_dict['epoch'])
     start_time = time.perf_counter()
     loader = loaders[0]
     total_iters = config['num_epochs'] * len(loader)
-
     # Train for specified number of epochs, although we mostly track G iterations.
+    pbar = tqdm(total=total_iters)
+    for _ in range(state_dict['itr']):
+        pbar.update()
+    timer = mmcv.Timer()
+    timer.start()
+    start_itr = state_dict['itr']
     for epoch in range(state_dict['epoch'], config['num_epochs']):
-        pbar = tqdm(enumerate(loader), total = len(loader))
-        for i, data in pbar:
+        for i, data in enumerate(loader):
             x, y = data['img'], data['label']
             # Increment the iteration counter
             state_dict['itr'] += 1
@@ -121,11 +130,28 @@ def run(config):
             metrics = train(x, y)
 
             if not (state_dict['itr'] % config['log_interval']):
-                curr_time = time.perf_counter()
-                curr_time_str = datetime.datetime.fromtimestamp(curr_time).strftime('%H:%M:%S')
-                elapsed = str(datetime.timedelta(seconds=(curr_time - start_time)))
-                log = "[{}] [{}] [{} / {}] Ep {}, ".format(curr_time_str, elapsed, state_dict['itr'], total_iters,epoch)
-                log +=', '.join(['%s : %+4.3f' % (key, metrics[key]) for key in metrics])
+                # curr_time = time.perf_counter()
+                # curr_time_str = datetime.datetime.fromtimestamp(
+                #     curr_time).strftime('%H:%M:%S')
+                # elapsed = str(datetime.timedelta(
+                #     seconds=(curr_time - start_time)))
+                # log = "[{}] [{}] [{} / {}] Ep {}, ".format(
+                #     curr_time_str, elapsed, state_dict['itr'], total_iters, epoch)
+                # log += ', '.join(['%s : %+4.3f' % (key, metrics[key])
+                #                   for key in metrics])
+
+                curr_time = timer.since_start()
+                curr_time_str = datetime.datetime.fromtimestamp(
+                    curr_time).strftime('%H:%M:%S')
+                #       quang duong                     / (quang duong da di / thoi gian da di)
+                eta = (
+                    total_iters - state_dict['itr']) // ((state_dict['itr']-start_itr) / (curr_time+1))
+                eta_str = datetime.datetime.fromtimestamp(
+                    eta).strftime('%H:%M:%S')
+                log = "[{}] [{}] [{} / {}] Ep {}, ".format(
+                    curr_time_str, eta_str, state_dict['itr'], total_iters, epoch)
+                log += ', '.join(['%s : %+4.3f' % (key, metrics[key])
+                                  for key in metrics])
 
                 pbar.set_description(log)
                 # print(log)
@@ -147,6 +173,7 @@ def run(config):
                 train_fns.save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
                                           state_dict, config, experiment_name, save_weight=True)
 
+            pbar.update()
         # Increment epoch counter at end of epoch
         state_dict['epoch'] += 1
 

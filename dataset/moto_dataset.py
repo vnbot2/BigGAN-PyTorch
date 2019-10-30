@@ -42,30 +42,37 @@ def data_preprocessing(img_path):
 
 
 class MotoDataset(Dataset):
-    def __init__(self, img_list, augmentor=None):
+    def __init__(self, img_list, load_in_mem, augmentor=None):
         self.img_list  = img_list
         self.augmentor = augmentor
-
+        self.load_in_mem = load_in_mem
+        if self.load_in_mem:
+            print('Load in mem...')
+            # self.data = [data_preprocessing(full_img_path) for full_img_path in tqdm(img_list)]
+            self.data = multi_thread(data_preprocessing, img_list, verbose=1)
     def __len__(self):
         return len(self.img_list)
     
     def __getitem__(self,idx):
-        full_img_path = self.img_list[idx]
-        assert os.path.exists(full_img_path)
-        img = data_preprocessing(full_img_path)
+        if self.load_in_mem:
+            img = self.data[idx]
+        else:
+            full_img_path = self.img_list[idx]
+            img = data_preprocessing(full_img_path)
+
         if self.augmentor is not None:
             img = self.augmentor(img)
 
-        return {'img':img, 'label':0, 'path':full_img_path}
+        return {'img':img, 'label':0}
 
 
 
 def get_data_loaders(data_root=None, label_root=None, batch_size=32, num_workers=16, shuffle=True,
-                     pin_memory=True, drop_last=True):
+                     pin_memory=True, drop_last=True, load_in_mem=False):
     print('Using dataset root location %s' % data_root)
     # train_set = DogsDataSet(data_root, label_root, create_runtime_tfms())
     img_paths = glob.glob('./datasets/moto/motobike/*.*')
-    train_set = MotoDataset(img_paths)
+    train_set = MotoDataset(img_paths, load_in_mem=load_in_mem)
     # Prepare loader; the loaders list is for forward compatibility with
     # using validation / test splits.
     loaders = []
