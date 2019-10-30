@@ -396,11 +396,11 @@ def save_weights(G, D, state_dict, weights_root, experiment_name, name_suffix=No
         print('Saving weights to %s...' % root)
     torch.save(G.state_dict(),
                '%s/%s.pth' % (root, join_strings('_', ['G', name_suffix])))
-    torch.save(G.optim.state_dict(),
+    torch.save(G.module.optim.state_dict(),
                '%s/%s.pth' % (root, join_strings('_', ['G_optim', name_suffix])))
     torch.save(D.state_dict(),
                '%s/%s.pth' % (root, join_strings('_', ['D', name_suffix])))
-    torch.save(D.optim.state_dict(),
+    torch.save(D.module.optim.state_dict(),
                '%s/%s.pth' % (root, join_strings('_', ['D_optim', name_suffix])))
     torch.save(state_dict,
                '%s/%s.pth' % (root, join_strings('_', ['state_dict', name_suffix])))
@@ -422,14 +422,14 @@ def load_weights(G, D, state_dict, weights_root, experiment_name,
             torch.load('%s/%s.pth' % (root, join_strings('_', ['G', name_suffix]))),
             strict=strict)
         if load_optim:
-            G.optim.load_state_dict(
+            G.module.optim.load_state_dict(
                 torch.load('%s/%s.pth' % (root, join_strings('_', ['G_optim', name_suffix]))))
     if D is not None:
         D.load_state_dict(
             torch.load('%s/%s.pth' % (root, join_strings('_', ['D', name_suffix]))),
             strict=strict)
         if load_optim:
-            D.optim.load_state_dict(
+            D.module.optim.load_state_dict(
                 torch.load('%s/%s.pth' % (root, join_strings('_', ['D_optim', name_suffix]))))
     # Load state dict
     for item in state_dict:
@@ -596,12 +596,12 @@ def sample_sheet(G, classes_per_sheet, num_classes, samples_per_class, parallel,
             if (z_ is not None) and hasattr(z_, 'sample_') and classes_per_sheet <= z_.size(0):
                 z_.sample_()
             else:
-                z_ = torch.randn(classes_per_sheet, G.dim_z, device='cuda')
+                z_ = torch.randn(classes_per_sheet, G.module.dim_z, device='cuda')
             with torch.no_grad():
                 if parallel:
-                    o = nn.parallel.data_parallel(G, (z_[:classes_per_sheet], G.shared(y)))
+                    o = nn.parallel.data_parallel(G, (z_[:classes_per_sheet], G.module.shared(y)))
                 else:
-                    o = G(z_[:classes_per_sheet], G.shared(y))
+                    o = G(z_[:classes_per_sheet], G.module.shared(y))
 
             ims += [o.data.cpu()]
         # This line should properly unroll the images
@@ -633,22 +633,22 @@ def interp_sheet(G, num_per_sheet, num_midpoints, num_classes, parallel,
                  fix_z=False, fix_y=False, device='cuda'):
     # Prepare zs and ys
     if fix_z:  # If fix Z, only sample 1 z per row
-        zs = torch.randn(num_per_sheet, 1, G.dim_z, device=device)
-        zs = zs.repeat(1, num_midpoints + 2, 1).view(-1, G.dim_z)
+        zs = torch.randn(num_per_sheet, 1, G.module.dim_z, device=device)
+        zs = zs.repeat(1, num_midpoints + 2, 1).view(-1, G.module.dim_z)
     else:
-        zs = interp(torch.randn(num_per_sheet, 1, G.dim_z, device=device),
-                    torch.randn(num_per_sheet, 1, G.dim_z, device=device),
-                    num_midpoints).view(-1, G.dim_z)
+        zs = interp(torch.randn(num_per_sheet, 1, G.module.dim_z, device=device),
+                    torch.randn(num_per_sheet, 1, G.module.dim_z, device=device),
+                    num_midpoints).view(-1, G.module.dim_z)
     if fix_y:  # If fix y, only sample 1 z per row
         ys = sample_1hot(num_per_sheet, num_classes)
-        ys = G.shared(ys).view(num_per_sheet, 1, -1)
+        ys = G.module.shared(ys).view(num_per_sheet, 1, -1)
         ys = ys.repeat(1, num_midpoints + 2, 1).view(num_per_sheet * (num_midpoints + 2), -1)
     else:
-        ys = interp(G.shared(sample_1hot(num_per_sheet, num_classes)).view(num_per_sheet, 1, -1),
-                    G.shared(sample_1hot(num_per_sheet, num_classes)).view(num_per_sheet, 1, -1),
+        ys = interp(G.module.shared(sample_1hot(num_per_sheet, num_classes)).view(num_per_sheet, 1, -1),
+                    G.module.shared(sample_1hot(num_per_sheet, num_classes)).view(num_per_sheet, 1, -1),
                     num_midpoints).view(num_per_sheet * (num_midpoints + 2), -1)
-    # Run the net--note that we've already passed y through G.shared.
-    if G.fp16:
+    # Run the net--note that we've already passed y through G.module.shared.
+    if G.module.fp16:
         zs = zs.half()
     with torch.no_grad():
         if parallel:

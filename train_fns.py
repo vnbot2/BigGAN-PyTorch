@@ -9,8 +9,8 @@ from utils import toggle_grad, ortho, save_weights
 
 def create_train_fn(G, D, GD, z_, y_, ema, state_dict, config):
     def train(x, y):
-        G.optim.zero_grad()
-        D.optim.zero_grad()
+        G.module.optim.zero_grad()
+        D.module.optim.zero_grad()
         # How many chunks to split x and y into?
         x = torch.split(x, config['batch_size'])
         y = torch.split(y, config['batch_size'])
@@ -23,7 +23,7 @@ def create_train_fn(G, D, GD, z_, y_, ema, state_dict, config):
 
         for step_index in range(config['num_D_steps']):
             # If accumulating gradients, loop multiple times before an optimizer step
-            D.optim.zero_grad()
+            D.module.optim.zero_grad()
             for accumulation_index in range(config['num_D_accumulations']):
                 z_.sample_()
                 y_.sample_()
@@ -42,7 +42,7 @@ def create_train_fn(G, D, GD, z_, y_, ema, state_dict, config):
             if config['D_ortho'] > 0.0:
                 ortho(D, config['D_ortho'])
 
-            D.optim.step()
+            D.module.optim.step()
 
         # Optionally toggle "requires_grad"
         if config['toggle_grads']:
@@ -50,7 +50,7 @@ def create_train_fn(G, D, GD, z_, y_, ema, state_dict, config):
             toggle_grad(G, True)
 
         # Zero G's gradients by default before training G, for safety
-        G.optim.zero_grad()
+        G.module.optim.zero_grad()
 
         # If accumulating gradients, loop multiple times
         for accumulation_index in range(config['num_G_accumulations']):
@@ -64,7 +64,7 @@ def create_train_fn(G, D, GD, z_, y_, ema, state_dict, config):
         if config['G_ortho'] > 0.0:
             # Don't ortho reg shared, it makes no sense. Really we should blacklist any embeddings for this
             ortho(G, config['G_ortho'], blacklist=[param for param in G.shared.parameters()])
-        G.optim.step()
+        G.module.optim.step()
 
         # If we have an ema, update it, regardless of if we test with it or not
         if config['ema']:
@@ -118,7 +118,7 @@ def save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
         if config['parallel']:
             fixed_Gz = nn.parallel.data_parallel(which_G, (fixed_z, which_G.shared(fixed_y)))
         else:
-            fixed_Gz = which_G(fixed_z, which_G.shared(fixed_y))
+            fixed_Gz = which_G(fixed_z, which_G.module.shared(fixed_y))
     if not os.path.isdir('%s/%s' % (config['samples_root'], experiment_name)):
         os.mkdir('%s/%s' % (config['samples_root'], experiment_name))
     image_filename = '%s/%s/fixed_samples%d.jpg' % (config['samples_root'],

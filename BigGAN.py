@@ -387,16 +387,17 @@ class G_D(nn.Module):
         self.G = G
         self.D = D
 
+
     def forward(self, z, gy, x=None, dy=None, train_G=False, return_G_z=False,
                 split_D=False):
         # If training G, enable grad tape
         with torch.set_grad_enabled(train_G):
             # Get Generator output given noise
-            G_z = self.G(z, self.G.shared(gy))
+            G_z = self.G(z, self.G.module.shared(gy))
             # Cast as necessary
-            if self.G.fp16 and not self.D.fp16:
+            if self.G.module.fp16 and not self.D.module.fp16:
                 G_z = G_z.float()
-            if self.D.fp16 and not self.G.fp16:
+            if self.D.module.fp16 and not self.G.module.fp16:
                 G_z = G_z.half()
         # Split_D means to run D once with real data and once with fake,
         # rather than concatenating along the batch dimension.

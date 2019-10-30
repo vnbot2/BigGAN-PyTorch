@@ -2,7 +2,7 @@
 # from tools.utils import *
 from common import *
 
-IMG_SIZE = 128
+IMG_SIZE = 64
 IMG_SIZE_2 = IMG_SIZE * 2
 
 def autocontrast(img, cutoff=1): #cutoff[%]
@@ -32,7 +32,8 @@ def pad_if_needed(img, values=255):
 
 
 def data_preprocessing(img_path):
-    img = cv2.imread(img_path)
+    # img = cv2.imread(img_path)
+    img = pv.read_img(img_path)
     bg_color = detect_background_color(img)
     img = pad_if_needed(img, bg_color)
     img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
@@ -62,7 +63,10 @@ class MotoDataset(Dataset):
 
         if self.augmentor is not None:
             img = self.augmentor(img)
-
+        # else:
+        #     # flip | [3, 64, 64]
+        #     if pu.do_by_chance(50):# 50 % flip
+        #         img = img[:, :, ::-1]
         return {'img':img, 'label':0}
 
 

@@ -4,7 +4,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_dir', '-i')
 parser.add_argument('--output_path', '-o')
-parser.add_argument('--fps', default=5)
+parser.add_argument('--fps', default=5, type=int)
 parser.add_argument('--size', default=5)
 args = parser.parse_args()
 

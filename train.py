@@ -21,7 +21,7 @@ def run(config):
     # configuration into the config-dict (e.g. inferring the number of classes
     # and size of the images from the dataset, passing in a pytorch object
     # for the activation specified as a string)
-    config['resolution'] = 128
+    config['resolution'] = 64
     config['n_classes'] = 1
     config['G_activation'] = utils.activation_dict[config['G_nl']]
     config['D_activation'] = utils.activation_dict[config['D_nl']]
@@ -43,14 +43,19 @@ def run(config):
     print('Experiment name is %s' % experiment_name)
 
     G = BigGAN.Generator(**config).to(device)
+    
     D = BigGAN.Discriminator(**config).to(device)
 
+    # if config['parallel']:
+    G = nn.DataParallel(G)
+    D = nn.DataParallel(D)
     # If using EMA, prepare it
     if config['ema']:
         print('Preparing EMA for G with decay of {}'.format(
             config['ema_decay']))
         G_ema = BigGAN.Generator(**{**config, 'skip_init': True,
                                     'no_optim': True}).to(device)
+        G_ema = nn.DataParallel(G_ema)
         ema = utils.ema(G, G_ema, config['ema_decay'], config['ema_start'])
     else:
         G_ema, ema = None, None
@@ -93,10 +98,10 @@ def run(config):
     G_batch_size = max(config['G_batch_size'], config['batch_size'])
     num_samples = config['num_fixed_samples']
     z_, y_ = utils.prepare_z_y(
-        num_samples, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
+        num_samples, G.module.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
     # Prepare a fixed z & y to see individual sample evolution throghout training
     fixed_z, fixed_y = utils.prepare_z_y(
-        num_samples, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
+        num_samples, G.module.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
     fixed_z.sample_()
     fixed_y.sample_()
 
