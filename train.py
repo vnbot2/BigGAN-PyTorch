@@ -130,16 +130,6 @@ def run(config):
             metrics = train(x, y)
 
             if not (state_dict['itr'] % config['log_interval']):
-                # curr_time = time.perf_counter()
-                # curr_time_str = datetime.datetime.fromtimestamp(
-                #     curr_time).strftime('%H:%M:%S')
-                # elapsed = str(datetime.timedelta(
-                #     seconds=(curr_time - start_time)))
-                # log = "[{}] [{}] [{} / {}] Ep {}, ".format(
-                #     curr_time_str, elapsed, state_dict['itr'], total_iters, epoch)
-                # log += ', '.join(['%s : %+4.3f' % (key, metrics[key])
-                #                   for key in metrics])
-
                 curr_time = timer.since_start()
                 curr_time_str = datetime.datetime.fromtimestamp(
                     curr_time).strftime('%H:%M:%S')

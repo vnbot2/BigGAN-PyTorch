@@ -1,9 +1,8 @@
 #!/bin/bash
 python train.py \
---data_root ./datasets/data \
---label_root ./datasets/labels \
+--data_root downloads/motobike \
 --experiment_name generative_motobike \
---num_epochs 2000 --shuffle --num_workers 2 --batch_size 256 \
+--num_epochs 2000 --shuffle --num_workers 2 --batch_size 64 \
 --num_D_steps 1 --G_lr 1e-4 --D_lr 4e-4 --D_B2 0.999 --G_B2 0.999 \
 --G_ch 32 --D_ch 64 \
 --G_attn 32 --D_attn 32 \
@@ -17,5 +16,4 @@ python train.py \
 --ema --use_ema --ema_start 30000 \
 --save_every 500 --sample_every 50 --log_interval 1 --num_fixed_samples 32 \
  --num_save_copies 0 --seed 1234 \
- --load_in_mem \
- --resume
+ --parallel
