@@ -97,9 +97,10 @@ def loss_hinge_gen(dis_fake):
 
 
 def save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
-                    state_dict, config, experiment_name):
-    save_weights(G, D, state_dict, config['weights_root'],
-                 experiment_name, None, G_ema if config['ema'] else None)
+                    state_dict, config, experiment_name, save_weight):
+    if save_weight:
+        save_weights(G, D, state_dict, config['weights_root'],
+                    experiment_name, None, G_ema if config['ema'] else None)
     # Save an additional copy to mitigate accidental corruption if process
     # is killed during a save (it's happened to me before -.-)
     if config['num_save_copies'] > 0:

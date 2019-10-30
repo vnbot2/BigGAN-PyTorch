@@ -12,7 +12,7 @@ import dataset
 import BigGAN
 import train_fns
 import utils
-
+from common import *
 
 def run(config):
     # Update the config dict as necessary
@@ -21,7 +21,7 @@ def run(config):
     # and size of the images from the dataset, passing in a pytorch object
     # for the activation specified as a string)
     config['resolution'] = 128
-    config['n_classes'] = 120
+    config['n_classes'] = 1
     config['G_activation'] = utils.activation_dict[config['G_nl']]
     config['D_activation'] = utils.activation_dict[config['D_nl']]
     # By default, skip init if resuming training.
@@ -87,23 +87,27 @@ def run(config):
     # Prepare noise and randomly sampled label arrays
     # Allow for different batch sizes in G
     G_batch_size = max(config['G_batch_size'], config['batch_size'])
+    num_samples=config['num_fixed_samples']
     z_, y_ = utils.prepare_z_y(
-        G_batch_size, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
+        num_samples, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
     # Prepare a fixed z & y to see individual sample evolution throghout training
     fixed_z, fixed_y = utils.prepare_z_y(
-        G_batch_size, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
+        num_samples, G.dim_z, config['n_classes'], device=device, fp16=config['G_fp16'])
     fixed_z.sample_()
     fixed_y.sample_()
+
     # Loaders are loaded, prepare the training function
     train = train_fns.create_train_fn(G, D, GD, z_, y_, ema, state_dict, config)
 
     print('Beginning training at epoch %d...' % state_dict['epoch'])
     start_time = time.perf_counter()
-    total_iters = config['num_epochs'] * len(loaders[0])
+    loader = loaders[0]
+    total_iters = config['num_epochs'] * len(loader)
 
     # Train for specified number of epochs, although we mostly track G iterations.
     for epoch in range(state_dict['epoch'], config['num_epochs']):
-        for i, data in enumerate(loaders[0]):
+        pbar = tqdm(enumerate(loader), total = len(loader))
+        for i, data in pbar:
             x, y = data['img'], data['label']
             # Increment the iteration counter
             state_dict['itr'] += 1
@@ -120,22 +124,28 @@ def run(config):
                 curr_time = time.perf_counter()
                 curr_time_str = datetime.datetime.fromtimestamp(curr_time).strftime('%H:%M:%S')
                 elapsed = str(datetime.timedelta(seconds=(curr_time - start_time)))
-                log = (
-                        "[{}] [{}] [{} / {}] Ep {}, ".format(curr_time_str, elapsed, state_dict['itr'], total_iters,
-                                                             epoch) +
-                        ', '.join(['%s : %+4.3f' % (key, metrics[key]) for key in metrics])
-                )
-                print(log)
+                log = "[{}] [{}] [{} / {}] Ep {}, ".format(curr_time_str, elapsed, state_dict['itr'], total_iters,epoch)
+                log +=', '.join(['%s : %+4.3f' % (key, metrics[key]) for key in metrics])
+
+                pbar.set_description(log)
+                # print(log)
 
             # Save weights and copies as configured at specified interval
+            if not (state_dict['itr'] % config['sample_every']):
+                if config['G_eval_mode']:
+                    # print('Switching G to eval mode...')
+                    G.eval()
+
+                train_fns.save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
+                                          state_dict, config, experiment_name, save_weight=False)
+
             if not (state_dict['itr'] % config['save_every']):
                 if config['G_eval_mode']:
-                    print('Switching G to eval mode...')
+                    # print('Switching G to eval mode...')
                     G.eval()
-                    # if config['ema']:
-                    # G_ema.eval()
+
                 train_fns.save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
-                                          state_dict, config, experiment_name)
+                                          state_dict, config, experiment_name, save_weight=True)
 
         # Increment epoch counter at end of epoch
         state_dict['epoch'] += 1

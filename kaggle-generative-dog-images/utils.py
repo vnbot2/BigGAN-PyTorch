@@ -71,6 +71,9 @@ def prepare_parser():
         help='G''s shared embedding dimensionality; if 0, will be equal to dim_z. '
              '(default: %(default)s)')
     parser.add_argument(
+        '--num_fixed_samples', type=int, default=32,
+        help='number of sample to visualize: %(default)s)')
+    parser.add_argument(
         '--dim_z', type=int, default=128,
         help='Noise dimensionality: %(default)s)')
     parser.add_argument(
@@ -197,6 +200,10 @@ def prepare_parser():
     parser.add_argument(
         '--save_every', type=int, default=2000,
         help='Save every X iterations (default: %(default)s)')
+    parser.add_argument(
+        '--sample_every', type=int, default=2000,
+        help='Sample every X iterations (default: %(default)s)')
+
     parser.add_argument(
         '--num_save_copies', type=int, default=2,
         help='How many copies to save (default: %(default)s)')
