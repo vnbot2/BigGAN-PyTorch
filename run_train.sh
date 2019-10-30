@@ -16,4 +16,5 @@ python train.py \
 --G_eval_mode \
 --ema --use_ema --ema_start 30000 \
 --save_every 500 --sample_every 50 --log_interval 1 --num_fixed_samples 32 \
- --num_save_copies 0 --seed 1234
+ --num_save_copies 0 --seed 1234 \
+ --resume

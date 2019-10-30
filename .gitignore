@@ -2,3 +2,8 @@
 __*
 cache
 **/*.mp4
+weights/
+samples
+**/*.pyc
+**/__*
+**/__pycache__/
