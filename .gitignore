@@ -7,3 +7,5 @@ samples
 **/*.pyc
 **/__*
 **/__pycache__/
+downloads
+.vscode

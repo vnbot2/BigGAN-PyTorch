@@ -71,7 +71,7 @@ def get_data_loaders(data_root=None, label_root=None, batch_size=32, num_workers
                      pin_memory=True, drop_last=True, load_in_mem=False):
     print('Using dataset root location %s' % data_root)
     # train_set = DogsDataSet(data_root, label_root, create_runtime_tfms())
-    img_paths = glob.glob('./datasets/moto/motobike/*.*')
+    img_paths = glob.glob(f'{data_root}/*.*')
     train_set = MotoDataset(img_paths, load_in_mem=load_in_mem)
     # Prepare loader; the loaders list is for forward compatibility with
     # using validation / test splits.
