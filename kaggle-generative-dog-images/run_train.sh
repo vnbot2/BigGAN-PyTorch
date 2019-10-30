@@ -1,8 +1,8 @@
 #!/bin/bash
 python train.py \
---data_root ./input/all-dogs \
---label_root ./input/annotation/Annotation \
---num_epochs 60 --shuffle --num_workers 2 --batch_size 32 \
+--data_root ./datasets/data \
+--label_root ./datasets/labels \
+--num_epochs 60 --shuffle --num_workers 2 --batch_size 128 \
 --num_D_steps 1 --G_lr 1e-4 --D_lr 4e-4 --D_B2 0.999 --G_B2 0.999 \
 --G_ch 32 --D_ch 64 \
 --G_attn 32 --D_attn 32 \

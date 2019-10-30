@@ -20,7 +20,7 @@ def run(config):
     # configuration into the config-dict (e.g. inferring the number of classes
     # and size of the images from the dataset, passing in a pytorch object
     # for the activation specified as a string)
-    config['resolution'] = 64
+    config['resolution'] = 128
     config['n_classes'] = 120
     config['G_activation'] = utils.activation_dict[config['G_nl']]
     config['D_activation'] = utils.activation_dict[config['D_nl']]
@@ -103,7 +103,8 @@ def run(config):
 
     # Train for specified number of epochs, although we mostly track G iterations.
     for epoch in range(state_dict['epoch'], config['num_epochs']):
-        for i, (x, y) in enumerate(loaders[0]):
+        for i, data in enumerate(loaders[0]):
+            x, y = data['img'], data['label']
             # Increment the iteration counter
             state_dict['itr'] += 1
             # Make sure G and D are in training mode, just in case they got set to eval
