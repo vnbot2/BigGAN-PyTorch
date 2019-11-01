@@ -91,7 +91,8 @@ def run(config):
         shuffle=config['shuffle'],
         pin_memory=config['pin_memory'],
         drop_last=True,
-        load_in_mem=config['load_in_mem']
+        load_in_mem=config['load_in_mem'],
+        mask_out=config['mask_out']
     )
 
     # Prepare noise and randomly sampled label arrays

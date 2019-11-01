@@ -33,6 +33,9 @@ def prepare_parser():
         '--load_in_mem', action='store_true', default=False,
         help='Load all data into memory? (default: %(default)s)')
     parser.add_argument(
+        '--mask_out', action='store_true', default=False,
+        help='Load all data into memory? (default: %(default)s)')
+    parser.add_argument(
         '--use_multiepoch_sampler', action='store_true', default=False,
         help='Use the multi-epoch sampler for dataloader? (default: %(default)s)')
 
