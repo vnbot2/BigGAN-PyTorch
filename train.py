@@ -13,7 +13,8 @@ import BigGAN
 import train_fns
 import utils
 from common import *
-
+# IMG_SIZE = 64
+# IMG_SIZE_2 = IMG_SIZE * 2
 
 def run(config):
     # Update the config dict as necessary
@@ -21,7 +22,7 @@ def run(config):
     # configuration into the config-dict (e.g. inferring the number of classes
     # and size of the images from the dataset, passing in a pytorch object
     # for the activation specified as a string)
-    config['resolution'] = 64
+    config['resolution'] = IMG_SIZE
     config['n_classes'] = 1
     config['G_activation'] = utils.activation_dict[config['G_nl']]
     config['D_activation'] = utils.activation_dict[config['D_nl']]

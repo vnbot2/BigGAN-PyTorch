@@ -37,3 +37,5 @@ import pyson.utils as pu
 # print(os.listdir("../input"))
 
 # Any results you write to the current directory are saved as output.
+IMG_SIZE = 128
+IMG_SIZE_2 = IMG_SIZE * 2

@@ -2,8 +2,7 @@
 # from tools.utils import *
 from common import *
 
-IMG_SIZE = 64
-IMG_SIZE_2 = IMG_SIZE * 2
+
 
 def autocontrast(img, cutoff=1): #cutoff[%]
     if np.random.rand() < 0.5:
@@ -33,7 +32,7 @@ def pad_if_needed(img, values=255):
 
 def data_preprocessing(img_path):
     # img = cv2.imread(img_path)
-    img = pv.read_img(img_path)
+    img = pv.imread(img_path)
     bg_color = detect_background_color(img)
     img = pad_if_needed(img, bg_color)
     img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
