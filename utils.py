@@ -391,8 +391,7 @@ def join_strings(base_string, strings):
 # Save a model's weights, optimizer, and the state_dict
 def save_weights(G, D, state_dict, weights_root, experiment_name, name_suffix=None, G_ema=None):
     root = '/'.join([weights_root, experiment_name])
-    if not os.path.exists(root):
-        os.mkdir(root)
+    os.makedirs(root, exist_ok=True)
     if name_suffix:
         print('Saving weights to %s/%s...' % (root, name_suffix))
     else:
@@ -587,11 +586,7 @@ def prepare_z_y(G_batch_size, dim_z, nclasses, device='cuda', fp16=False, z_var=
 def sample_sheet(G, classes_per_sheet, num_classes, samples_per_class, parallel,
                  samples_root, experiment_name, folder_number, z_=None):
     # Prepare sample directory
-    if not os.path.isdir('%s/%s' % (samples_root, experiment_name)):
-        os.mkdir('%s/%s' % (samples_root, experiment_name))
-    if not os.path.isdir('%s/%s/%d' % (samples_root, experiment_name, folder_number)):
-        os.mkdir('%s/%s/%d' % (samples_root, experiment_name, folder_number))
-    # loop over total number of sheets
+
     for i in range(num_classes // classes_per_sheet):
         ims = []
         y = torch.arange(i * classes_per_sheet, (i + 1) * classes_per_sheet, device='cuda')

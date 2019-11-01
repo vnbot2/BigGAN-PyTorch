@@ -92,9 +92,7 @@ def run(config):
         print('G is in %s mode...' % ('training' if G.training else 'eval'))
 
     out_dir = config['samples_root']
-    if not os.path.exists(out_dir):
-        os.mkdir(out_dir)
-
+    os.makedirs(out_dir, exist_ok=True)
     print('Generating images..')
     generate_images(out_dir, G, config['sample_num'], config, device)
     shutil.make_archive('images', 'zip', out_dir)
