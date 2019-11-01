@@ -25,7 +25,8 @@ loaders = dataset.get_data_loaders(
     shuffle=config['shuffle'],
     pin_memory=config['pin_memory'],
     drop_last=True,
-    load_in_mem=config['load_in_mem']
+    load_in_mem=config['load_in_mem'],
+    mask_out=True,
 )
 
 
@@ -254,7 +255,7 @@ for epoch in range(num_epochs):
         D_losses.append(errD.item())
 
         # Check how the generator is doing by saving G's output on fixed_noise
-        if (iters % 100 == 0) or ((epoch == num_epochs-1) and (i == len(dataloader)-1)):
+        if (iters % config['sample_every'] == 0) or ((epoch == num_epochs-1) and (i == len(dataloader)-1)):
             with torch.no_grad():
                 fake = netG(fixed_noise).detach().cpu()
             plt.imshow(np.transpose(vutils.make_grid(fake.to('cpu')[:64], padding=2, normalize=True).cpu(),(1,2,0)))

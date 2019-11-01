@@ -1,6 +1,6 @@
 #!/bin/bash
 python dc_gan.py \
---data_root downloads/motobike \
+--data_root downloads/moto_mask \
 --experiment_name generative_motobike \
 --num_epochs 5000 --shuffle --num_workers 16 --batch_size 128 \
 --num_D_steps 1 --G_lr 2e-4 --D_lr 8e-4 --D_B2 0.999 --G_B2 0.999 \
@@ -14,5 +14,7 @@ python dc_gan.py \
 --G_init ortho --D_init ortho \
 --G_eval_mode \
 --ema --use_ema --ema_start 30000 \
---save_every 1000 --sample_every 50 --log_interval 1 --num_fixed_samples 25 \
+--save_every 1000 --sample_every 500 --log_interval 1 --num_fixed_samples 25 \
  --num_save_copies 2 --seed 1234 \
+ --load_in_mem \
+ --mask_out

@@ -84,7 +84,7 @@ class MotoMaskDataset(Dataset):
             img = self.data[idx]
         else:
             full_img_path = self.img_list[idx]
-            img = data_preprocessing(full_img_path)
+            img = self.data_preprocessing(full_img_path)
 
         if self.augmentor is not None:
             img = self.augmentor(img)
