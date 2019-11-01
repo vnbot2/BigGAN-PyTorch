@@ -6,3 +6,4 @@ wget https://dl.challenge.zalo.ai/ZAC2019_GAN/motor_gen_128.zip
 unzip training_dataset.zip
 cd .. && ls downloads
 
+python -m scripts.normalize_moto
