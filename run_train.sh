@@ -2,8 +2,8 @@
 python train.py \
 --data_root downloads/motobike \
 --experiment_name generative_motobike \
---num_epochs 2000 --shuffle --num_workers 2 --batch_size 2048 \
---num_D_steps 1 --G_lr 1e-4 --D_lr 4e-4 --D_B2 0.999 --G_B2 0.999 \
+--num_epochs 5000 --shuffle --num_workers 16 --batch_size 2000 \
+--num_D_steps 1 --G_lr 2e-4 --D_lr 8e-4 --D_B2 0.999 --G_B2 0.999 \
 --G_ch 32 --D_ch 64 \
 --G_attn 32 --D_attn 32 \
 --G_nl inplace_relu --D_nl inplace_relu \
@@ -14,6 +14,7 @@ python train.py \
 --G_init ortho --D_init ortho \
 --G_eval_mode \
 --ema --use_ema --ema_start 30000 \
---save_every 5000 --sample_every 50 --log_interval 1 --num_fixed_samples 9 \
- --num_save_copies 0 --seed 1234 \
+--save_every 1000 --sample_every 50 --log_interval 1 --num_fixed_samples 25 \
+ --num_save_copies 2 --seed 1234 \
  --load_in_mem \
+ --resume

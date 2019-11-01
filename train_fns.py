@@ -119,11 +119,10 @@ def save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
             fixed_Gz = nn.parallel.data_parallel(which_G, (fixed_z, which_G.shared(fixed_y)))
         else:
             fixed_Gz = which_G(fixed_z, which_G.module.shared(fixed_y))
-    if not os.path.isdir('%s/%s' % (config['samples_root'], experiment_name)):
-        os.mkdir('%s/%s' % (config['samples_root'], experiment_name))
     image_filename = '%s/%s/fixed_samples%d.jpg' % (config['samples_root'],
                                                     experiment_name,
                                                     state_dict['itr'])
+    os.makedirs(os.path.dirname(image_filename), exist_ok=True)
     torchvision.utils.save_image(fixed_Gz.float().cpu(), image_filename,
                                  nrow=int(fixed_Gz.shape[0] ** 0.5), normalize=True)
     # For now, every time we save, also save sample sheets
@@ -135,15 +134,18 @@ def save_and_sample(G, D, G_ema, z_, y_, fixed_z, fixed_y,
                        experiment_name=experiment_name,
                        folder_number=state_dict['itr'],
                        z_=z_)
-    # Also save interp sheets
-    for fix_z, fix_y in zip([False, False, True], [False, True, False]):
-        utils.interp_sheet(which_G,
-                           num_per_sheet=16,
-                           num_midpoints=8,
-                           num_classes=config['n_classes'],
-                           parallel=config['parallel'],
-                           samples_root=config['samples_root'],
-                           experiment_name=experiment_name,
-                           folder_number=state_dict['itr'],
-                           sheet_number=0,
-                           fix_z=fix_z, fix_y=fix_y, device='cuda')
+    # if not os.path.isdir('%s/%s' % (config['samples_root'], experiment_name)):
+    #     os.mkdir('%s/%s' % (config['samples_root'], experiment_name))
+    
+    # # Also save interp sheets
+    # for fix_z, fix_y in zip([False, False, True], [False, True, False]):
+    #     utils.interp_sheet(which_G,
+    #                        num_per_sheet=16,
+    #                        num_midpoints=8,
+    #                        num_classes=config['n_classes'],
+    #                        parallel=config['parallel'],
+    #                        samples_root=config['samples_root'],
+    #                        experiment_name=experiment_name,
+    #                        folder_number=state_dict['itr'],
+    #                        sheet_number=0,
+    #                        fix_z=fix_z, fix_y=fix_y, device='cuda')
